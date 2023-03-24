@@ -6,6 +6,11 @@
 	<false/>
 	<key>FirebaseAutomaticScreenReportingEnabled</key>
 	<false/>
+    <key>NSCameraUsageDescription</key>
+    <string>This app needs access to the camera to enable video calling.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app needs access to the microphone to enable audio calling.</string>
+
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -6,7 +6,9 @@ target 'TestCallUsingCallKit' do
   use_frameworks!
 
   # Pods for TestCallUsingCallKit
-  pod 'Firebase/Analytics'
-  pod 'Firebase/Messaging'
+ pod 'Starscream', '~> 4.0.0'
+ pod 'Socket.IO-Client-Swift'
+
+ pod 'WebRTC'
 
 end

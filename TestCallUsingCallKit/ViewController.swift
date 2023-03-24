@@ -21,14 +21,14 @@ class ViewController: UIViewController {
     }
 
     func call() {
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 5, execute: {
-//            CallManager.shared.reportNewIncomingCall(handle: "hiepchau")
-            let callManager = CallManager()
-            let uuid = UUID()
-            callManager.reportNewIncomingCall(id: uuid, handle: "hiepchau")
-        })
+//        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 5, execute: {
+////            CallManager.shared.reportNewIncomingCall(handle: "hiepchau")
+//            let callManager = CallManager()
+//            let uuid = UUID()
+//            callManager.reportNewIncomingCall(id: uuid, handle: "hiepchau")
+//        })
+        WebRTCClient.sharedInstance.createOffer()
     }
-
 }
 
 

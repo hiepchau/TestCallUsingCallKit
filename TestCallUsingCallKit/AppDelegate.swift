@@ -8,42 +8,44 @@
 import UIKit
 import PushKit
 import CallKit
-import FirebaseCore
-import FirebaseMessaging
 import UserNotifications
 
 @main
-class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate, MessagingDelegate, UNUserNotificationCenterDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate, UNUserNotificationCenterDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         self.voipRegistration()
-        FirebaseApp.configure()
-        Messaging.messaging().delegate = self
-
-        // Request authorization for notifications
-        let center = UNUserNotificationCenter.current()
-        center.delegate = self
-        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if granted {
-                DispatchQueue.main.async {
-                    application.registerForRemoteNotifications()
-                }
-            }
-        }
-
         return true
     }
     
+    func handleIncomingMessage(text: String) {
+        // Parse the incoming message as JSON
+        guard let data = text.data(using: .utf8),
+              let jsonObject = try? JSONSerialization.jsonObject(with: data, options: []),
+              let message = jsonObject as? [String: Any] else {
+            return
+        }
+        
+        // Check for the necessary information to handle a call
+        guard let voip = message["voip"] as? String, voip == "1",
+              let caller = message["caller"] as? String,
+              let callUUIDString = message["call_uuid"] as? String,
+              let callUUID = UUID(uuidString: callUUIDString) else {
+            return
+        }
+        
+        // Report the new incoming call
+        let callManager = CallManager()
+        callManager.reportNewIncomingCall(id: callUUID, handle: caller)
+    }
+
     // MARK: UISceneSession Lifecycle
     
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
     
-    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        Messaging.messaging().apnsToken = deviceToken
-    }
 
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         guard let voip = userInfo["voip"] as? String, voip == "1",
@@ -80,28 +82,4 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate, M
     func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
         
     }
-    
-    //Setup FCM
-    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        print("Firebase registration token: \(String(describing: fcmToken))")
-        // Send the FCM token to your server to use for sending notifications.
-    }
-    
-    //Handle incoming notifications via FCM
-    func messaging(_ messaging: Messaging, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-            guard let voip = userInfo["voip"] as? String, voip == "1",
-                  let caller = userInfo["caller"] as? String,
-                  let callUUIDString = userInfo["call_uuid"] as? String,
-                  let callUUID = UUID(uuidString: callUUIDString) else {
-                completionHandler(.noData)
-                return
-            }
-            
-            let callManager = CallManager()
-            callManager.reportNewIncomingCall(id: callUUID, handle: caller)
-            
-            completionHandler(.newData)
-        }
-
-
 }
